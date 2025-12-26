@@ -1,4 +1,4 @@
-# 🎬 Video Frame Extractor Pro (V7)
+# 🎬 Video Frame Extractor Pro
 
 Un outil professionnel basé sur **Python 3.12**, **Gradio** et **FFmpeg** conçu pour extraire des images de vidéos (MP4, MKV, AVI, etc.) avec une précision chirurgicale et une fidélité maximale.
 
