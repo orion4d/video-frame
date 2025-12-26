@@ -33,49 +33,50 @@ def clean_temp_files():
     except Exception as e: msg.append(f"Erreur Temp: {e}")
     return " | ".join(msg)
 
-# --- MOTEUR PYAV SMART ---
+# --- MOTEUR PYAV ---
 
 def get_video_info(path):
     """
-    Récupère la durée EXACTE.
-    Si les métadonnées sont vides (MKV buggé), on seek à la fin pour trouver la vraie durée.
+    Récupère la durée.
+    Si échec détection -> Retourne 24 HEURES (86400s) pour ne pas bloquer l'utilisateur.
     """
+    FALLBACK_DURATION = 10800.0 # 3 Heures par défaut si illisible
+    
     if not path: return 0, 0
     try:
         with av.open(path) as container:
             stream = container.streams.video[0]
             fps = float(stream.average_rate)
             
-            # 1. Essai via Container (souvent bon pour MKV)
+            # 1. Essai via Container
             duration = float(container.duration) / av.time_base if container.duration else 0
             
-            # 2. Essai via Stream (souvent bon pour MP4)
+            # 2. Essai via Stream
             if duration <= 0 and stream.duration:
                 duration = float(stream.duration * stream.time_base)
             
-            # 3. Méthode "Smart Seek" (Si métadonnées = 0)
+            # 3. Smart Seek (Tentative ultime)
             if duration <= 1:
                 try:
-                    # On saute très loin dans le futur (2^60) pour forcer PyAV à aller à la dernière frame
-                    # backward=True va le faire reculer jusqu'à la dernière image réelle
                     container.seek(1 << 60, stream=stream, backward=True, any_frame=False)
-                    
-                    # On décode juste une frame pour lire son timestamp
                     for frame in container.decode(stream):
                         duration = float(frame.pts * stream.time_base)
                         break
                 except:
-                    # Si vraiment tout échoue, valeur par défaut
-                    duration = 3600.0 
+                    pass # On garde 0 si ça plante
+            
+            # Si après tout ça on est toujours proche de 0, on met le MAX
+            if duration <= 10:
+                print("⚠️ Durée non détectée : Passage en mode manuel (Max 24h)")
+                duration = FALLBACK_DURATION
             
             return duration, round(fps, 3)
             
     except Exception as e:
-        print(f"Erreur info: {e}")
-        return 3600.0, 24.0
+        print(f"Erreur critique info: {e} -> Passage en mode manuel")
+        return FALLBACK_DURATION, 24.0
 
 def fast_preview(video_path, time_pos):
-    """Aperçu instantané"""
     if not video_path: return None
     preview_path = os.path.join(TEMP_DIR, "preview_live.jpg")
     try:
@@ -91,7 +92,6 @@ def fast_preview(video_path, time_pos):
     except: return None
 
 def extract_native(video_path, start, end, interval_val, fps_val, use_fps, single_mode, single_pos, img_format):
-    """Extraction Native"""
     if not video_path: return "Erreur : Aucune vidéo", []
     process_event.set()
     
@@ -109,9 +109,13 @@ def extract_native(video_path, start, end, interval_val, fps_val, use_fps, singl
     
     if not single_mode:
         curr = start
+        # Sécurité : on s'arrête si l'utilisateur demande une fin au delà de la fin réelle
+        # Mais comme on ne connait pas la fin réelle, on fait confiance à l'utilisateur
+        # On ajoute juste une sécurité anti-boucle infinie (max 100 000 images)
         while curr <= end + 0.0001:
             target_timestamps.append(curr)
             curr += target_interval
+            if len(target_timestamps) > 100000: break 
             
     if not target_timestamps: return "Rien à extraire", []
 
@@ -173,9 +177,9 @@ def extract_native(video_path, start, end, interval_val, fps_val, use_fps, singl
     return f"Terminé : {count} images en {dur}s ({session_folder})", output_files
 
 # --- INTERFACE ---
-DEFAULT_MAX = 200000 
+DEFAULT_MAX = 10800.0 # 3h par défaut
 
-with gr.Blocks(title="Extracteur Video Pro V6") as demo:
+with gr.Blocks(title="Extracteur Video Pro V7") as demo:
     gr.Markdown("# 🚀 Extracteur de Frames")
     
     with gr.Row():
@@ -216,16 +220,18 @@ with gr.Blocks(title="Extracteur Video Pro V6") as demo:
     def on_load(path):
         if not path: return [gr.update()]*3 + ["Pas de vidéo", 24]
         
-        # Le fix est ici : la fonction renvoie maintenant la VRAIE durée
         dur, fps = get_video_info(path)
         
-        # On ne met plus de fallback arbitraire si dur > 1
-        msg = f"Chargé | Durée: {round(dur, 2)}s | FPS: {fps}"
+        # Info texte
+        if dur >= 86000:
+            msg = f"Chargé | Durée : Inconnue -> Limite fixée à 24h | FPS: {fps}"
+        else:
+            msg = f"Chargé | Durée: {round(dur, 2)}s | FPS: {fps}"
         
         return (
             gr.update(maximum=dur, value=0),           
             gr.update(maximum=dur, value=0),           
-            gr.update(maximum=dur, value=dur),   
+            gr.update(maximum=dur, value=dur if dur < 86000 else 600), # Par défaut fin à 10mn si durée inconnue   
             msg,
             fps if fps > 0 else 24
         )
