@@ -1,0 +1,9 @@
+gradio==6.2.0
+ffmpeg-python==0.2.0
+ffmpy==0.3.0
+huggingface-hub==1.2.3
+fastapi==0.127.0
+starlette==0.50.0
+pydantic>=2.0
+jinja2
+python-multipart
