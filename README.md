@@ -3,6 +3,7 @@
 Un outil professionnel basé sur **Python 3.12**, **Gradio** et **FFmpeg** conçu pour extraire des images de vidéos (MP4, MKV, AVI, etc.) avec une précision chirurgicale et une fidélité maximale.
 
 <img width="1635" height="1281" alt="image" src="https://github.com/user-attachments/assets/ff682a73-3be5-4151-b7ff-db7e421beaae" />
+<img width="1850" height="947" alt="image" src="https://github.com/user-attachments/assets/33cdd50d-78e5-4642-832b-d0f75d026cc3" />
 
 ## 🚀 Caractéristiques principales
 
