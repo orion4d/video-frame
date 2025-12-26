@@ -26,19 +26,18 @@ Un outil professionnel basé sur **Python 3.12**, **Gradio** et **PyAV** conçu 
 ### 2. Configuration de l'environnement
 Ouvrez un terminal dans le dossier du projet :
 
-```bash
-# Création de l'environnement virtuel
-python -m venv venv
+### Création de l'environnement virtuel
+`python -m venv venv`
 
-# Activation (Windows)
-venv\Scripts\activate
+### Activation (Windows)
+`venv\Scripts\activate`
 
-# Installation des dépendances (PyAV, Gradio, Pillow)
-pip install gradio av pillow
+### Installation des dépendances (PyAV, Gradio, Pillow)
+`pip install gradio av pillow`
 
 ## 🚦 Lancement
 
 Vous pouvez lancer l'application de deux manières :
 
 1.  **Via le script Windows** : Double-cliquez sur `start-app.bat`.
-2.  **Via le terminal dans le dossier du venv** : `venv\Scripts\activate puis app-video-frame_PyAV.py`
+2.  **Via le terminal dans le dossier du venv** : `venv\Scripts\activate` puis `app-video-frame_PyAV.py`
