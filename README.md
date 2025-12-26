@@ -40,4 +40,4 @@ Ouvrez un terminal dans le dossier du projet :
 Vous pouvez lancer l'application de deux manières :
 
 1.  **Via le script Windows** : Double-cliquez sur `start-app.bat`.
-2.  **Via le terminal dans le dossier du venv** : `venv\Scripts\activate` puis `app-video-frame_PyAV.py`
+2.  **Via le terminal dans le dossier du venv** : `venv\Scripts\activate` puis `python app-video-frame_PyAV.py`
